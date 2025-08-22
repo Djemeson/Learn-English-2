@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conversores e Importadores para Anki</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --primary:#2b6cb0;
+      --dash:#cfd8e3;
+      --ring:#93c5fd;
+      --radius:18px;
+      --shadow:0 6px 20px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.45;
+    }
+
+    .wrap{
+      max-width:1240px;
+      margin:28px auto 40px;
+      padding:0 18px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(12,1fr);
+      gap:22px;
+    }
+
+    /* Cards superiores (4 colunas em desktop) */
+    .card{
+      grid-column:span 12;
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:22px 22px 26px;
+    }
+    @media (min-width: 900px){
+      .card{grid-column:span 3;}
+    }
+
+    .card h2{
+      margin:0 0 16px;
+      font-size:24px;
+      font-weight:800;
+      letter-spacing:.2px;
+      color:#2a64c7; /* azul do título do print */
+    }
+
+    .dropzone{
+      border:2px dashed var(--dash);
+      border-radius:14px;
+      padding:32px 18px;
+      min-height:150px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      color:var(--muted);
+      background:#fafbff;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .dropzone.is-dragover{
+      border-color:var(--ring);
+      box-shadow:0 0 0 4px rgba(147,197,253,.35) inset;
+      background:#f0f7ff;
+    }
+
+    .hint{
+      max-width:30ch;
+      font-size:16px;
+    }
+
+    .input-row{
+      display:flex;
+      gap:12px;
+      margin-top:6px;
+    }
+    .input{
+      flex:1 1 auto;
+      padding:14px 14px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      font-size:16px;
+      outline:none;
+      background:#fff;
+    }
+    .input:focus{border-color:#bfdbfe; box-shadow:0 0 0 3px rgba(191,219,254,.6)}
+
+    .btn{
+      appearance:none;
+      border:0;
+      border-radius:10px;
+      padding:14px 18px;
+      font-weight:700;
+      font-size:16px;
+      cursor:pointer;
+      background:#2a64c7;
+      color:#fff;
+      transition: filter .15s, transform .02s;
+      white-space:nowrap;
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn:focus{outline:3px solid #93c5fd; outline-offset:2px}
+
+    .field{
+      margin-top:14px;
+      display:grid;
+      gap:8px;
+    }
+    label{font-weight:600}
+    select{
+      padding:12px 14px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      font-size:16px;
+      background:#fff;
+    }
+    select:focus{border-color:#bfdbfe; box-shadow:0 0 0 3px rgba(191,219,254,.6)}
+
+    /* Área larga inferior */
+    .wide{
+      grid-column:span 12;
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:22px;
+      margin-top:14px;
+    }
+    .wide h2{
+      margin:4px 0 16px;
+      font-size:26px;
+      font-weight:800;
+      color:#2a64c7;
+    }
+    .dropzone.wide-zone{
+      min-height:170px;
+    }
+
+    /* Lista de arquivos selecionados (feedback simples) */
+    .files{
+      margin-top:10px;
+      font-size:14px;
+      color:#374151;
+    }
+    .files li{margin:4px 0}
+  </style>
+</head>
+<body>
+  <main class="wrap" aria-label="Ferramentas de importação para Anki">
+    <section class="grid" aria-label="Ações principais">
+      <!-- 1) Kindle para MD -->
+      <article class="card" role="region" aria-labelledby="h-kindlem">
+        <h2 id="h-kindlem">Kindle para MD</h2>
+        <div class="dropzone" data-zone="kindle" tabindex="0" aria-label="Arraste e solte o arquivo do Kindle ou clique para selecionar">
+          <p class="hint">Arraste e solte o arquivo do Kindle aqui ou clique para selecionar</p>
+          <input type="file" accept=".txt,.md,.html,.pdf,.azw3,.mobi,.epub" hidden aria-hidden="true">
+        </div>
+        <ul class="files" id="files-kindle" aria-live="polite"></ul>
+      </article>
+
+      <!-- 2) TXT para Anki -->
+      <article class="card" role="region" aria-labelledby="h-txt">
+        <h2 id="h-txt">TXT para Anki</h2>
+        <div class="dropzone" data-zone="txt" tabindex="0" aria-label="Arraste e solte um arquivo .txt ou clique para selecionar">
+          <p class="hint">Arraste e solte um arquivo txt aqui ou clique para selecionar</p>
+          <input type="file" accept=".txt" hidden aria-hidden="true">
+        </div>
+        <ul class="files" id="files-txt" aria-live="polite"></ul>
+      </article>
+
+      <!-- 3) URL para Anki -->
+      <article class="card" role="region" aria-labelledby="h-url">
+        <h2 id="h-url">URL para Anki</h2>
+        <div class="input-row">
+          <input class="input" type="url" placeholder="https://exemplo.com" aria-label="Endereço do site para processar">
+          <button class="btn" type="button">Processar URL</button>
+        </div>
+      </article>
+
+      <!-- 4) Roteiro para Anki -->
+      <article class="card" role="region" aria-labelledby="h-roteiro">
+        <h2 id="h-roteiro">Roteiro para Anki</h2>
+        <div class="dropzone" data-zone="roteiro" tabindex="0" aria-label="Arraste e solte o roteiro">
+          <p class="hint">Arraste e solte o roteiro aqui<br>ou clique para selecionar</p>
+          <input type="file" accept=".doc,.docx,.pdf,.md,.txt" hidden aria-hidden="true">
+        </div>
+
+        <div class="field">
+          <label for="nivel">Nível de dificuldade</label>
+          <select id="nivel" aria-label="Nível de dificuldade">
+            <option>Fácil (A2)</option>
+            <option selected>Médio (B1)</option>
+            <option>Difícil (B2)</option>
+            <option>Avançado (C1/C2)</option>
+          </select>
+        </div>
+      </article>
+
+      <!-- Área inferior ampla -->
+      <section class="wide" role="region" aria-labelledby="h-arquivo">
+        <h2 id="h-arquivo">Arquivo para Anki</h2>
+        <div class="dropzone wide-zone" data-zone="arquivo" tabindex="0" aria-label="Arraste e solte um arquivo para o Anki">
+          <p class="hint">Arraste e solte um arquivo aqui ou clique para selecionar</p>
+          <input type="file" hidden aria-hidden="true">
+        </div>
+        <ul class="files" id="files-arquivo" aria-live="polite"></ul>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    // Interações básicas para as zonas de drop (visuais e seleção de arquivo)
+    document.querySelectorAll('.dropzone').forEach(zone => {
+      const input = zone.querySelector('input[type="file"]');
+
+      const updateList = (files) => {
+        const list = document.querySelector('#files-' + zone.dataset.zone);
+        if (!list) return;
+        list.innerHTML = '';
+        [...files].forEach(f => {
+          const li = document.createElement('li');
+          li.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+          list.appendChild(li);
+        });
+      };
+
+      const openPicker = () => input && input.click();
+
+      ['click','keydown'].forEach(evt =>
+        zone.addEventListener(evt, e=>{
+          if (e.type==='click' || (e.type==='keydown' && (e.key==='Enter'||e.key===' '))){
+            e.preventDefault(); openPicker();
+          }
+        })
+      );
+
+      ;['dragenter','dragover'].forEach(type=>{
+        zone.addEventListener(type, e=>{ e.preventDefault(); e.stopPropagation(); zone.classList.add('is-dragover'); });
+      });
+      ;['dragleave','drop'].forEach(type=>{
+        zone.addEventListener(type, e=>{ e.preventDefault(); e.stopPropagation(); zone.classList.remove('is-dragover'); });
+      });
+      zone.addEventListener('drop', e=>{
+        const files = e.dataTransfer.files;
+        if (input) input.files = files;
+        updateList(files);
+      });
+      if (input){
+        input.addEventListener('change', e=> updateList(e.target.files));
+      }
+    });
+
+    // Comportamento do botão "Processar URL" (demonstração)
+    document.querySelectorAll('.card').forEach(card=>{
+      const btn = card.querySelector('.btn');
+      const field = card.querySelector('input[type="url"]');
+      if(!btn || !field) return;
+      btn.addEventListener('click', ()=>{
+        const url = field.value.trim();
+        if(!url){ alert('Informe uma URL válida.'); return; }
+        alert('URL enviada para processamento:\n' + url);
+      });
+    });
+  </script>
+</body>
+</html>
